@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Selector de módulos — IAC</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f5f5f5;color:#1a1a1a;padding:2rem;max-width:900px;margin:0 auto}
+h1{font-size:20px;font-weight:600;margin-bottom:0.25rem}
+.sub{font-size:14px;color:#666;margin-bottom:1.5rem}
+.rate-bar{display:flex;align-items:center;gap:12px;background:#fff;border-radius:12px;padding:1rem 1.25rem;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:1rem;flex-wrap:wrap}
+.rate-bar label{font-size:14px;font-weight:600;color:#444}
+.rate-bar input{width:150px;padding:8px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:16px;font-weight:600;font-family:inherit;text-align:right;font-variant-numeric:tabular-nums}
+.rate-bar input:focus{outline:none;border-color:#1a6fbf;box-shadow:0 0 0 3px rgba(26,111,191,.15)}
+.rate-bar span{font-size:14px;color:#888}
+.card{background:#fff;border-radius:12px;padding:1.5rem;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:#888;padding:8px 10px;border-bottom:2px solid #e0e0e0}
+td{padding:10px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
+tr:hover{background:#fafafa}
+tr.mandatory{background:#f8fcff}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.tag{font-size:11px;padding:3px 10px;border-radius:20px;background:#e0f0ff;color:#1a6fbf;font-weight:600}
+.totals{display:flex;gap:16px;margin-top:1.5rem;flex-wrap:wrap}
+.metric{flex:1;min-width:140px;background:#f8f8f8;border-radius:10px;padding:1rem 1.25rem}
+.metric small{font-size:13px;color:#888;display:block}
+.metric .val{font-size:26px;font-weight:700;margin-top:4px;color:#1a1a1a}
+input[type=checkbox]{width:18px;height:18px;cursor:pointer;accent-color:#1a6fbf}
+input.hrs{width:60px;text-align:center;padding:6px 8px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;font-variant-numeric:tabular-nums}
+input.hrs:focus{outline:none;border-color:#1a6fbf;box-shadow:0 0 0 3px rgba(26,111,191,.15)}
+input.hrs::-webkit-inner-spin-button{opacity:1}
+.orig{font-size:11px;color:#aaa;margin-top:2px}
+.actions{margin-top:1.5rem;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.actions button{padding:10px 20px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer}
+.btn-primary{background:#1a6fbf;color:#fff}
+.btn-primary:hover{background:#155a9c}
+.btn-secondary{background:#e8e8e8;color:#444}
+.btn-secondary:hover{background:#ddd}
+@media(max-width:600px){body{padding:1rem}.totals{flex-direction:column}input.hrs{width:50px}.rate-bar input{width:120px}}
+</style>
+</head>
+<body>
+<h1>Alcance funcional de la solución</h1>
+<p class="sub">Selecciona los módulos y ajusta las horas de esfuerzo según la necesidad de tu proyecto.</p>
+
+<div class="rate-bar">
+<label>Valor hora:</label>
+<input type="text" id="rate" value="243.000"/>
+<span>COP / hora</span>
+</div>
+
+<div class="card">
+<table>
+<thead><tr><th></th><th>Módulo</th><th class="num">Horas</th><th class="num">Precio COP</th><th></th></tr></thead>
+<tbody id="tb"></tbody>
+</table>
+</div>
+<div class="totals">
+<div class="metric"><small>Total horas</small><div class="val" id="th">0</div></div>
+<div class="metric"><small>Total presupuesto</small><div class="val" id="tp">$0</div></div>
+<div class="metric"><small>Módulos seleccionados</small><div class="val" id="tm">0</div></div>
+</div>
+<div class="actions">
+<button class="btn-secondary" onclick="resetAll()">Restaurar valores</button>
+<button class="btn-primary" onclick="copySelection()">Copiar selección</button>
+</div>
+<script>
+const DEFAULT_RATE=243000;
+const modules=[
+{n:"Control de materiales",h:11,o:false},
+{n:"Control de calidad e inventoría",h:11,o:false},
+{n:"Control de personal y cuadrillas",h:15,o:false},
+{n:"Control digital del proyecto",h:18,o:false},
+{n:"Indicadores y tablero de control",h:10,o:false},
+{n:"Asignación de usuarios",h:3,o:false},
+{n:"Generación de reportes en PDF",h:2,o:false},
+{n:"Asignación de proyectos a usuarios",h:3,o:false},
+{n:"Conexiones con herramientas externas (Synchro)",h:6,o:false},
+{n:"Configuración de bases de datos",h:5,o:true},
+{n:"Despliegue aplicativo",h:8,o:true},
+{n:"Personalización aplicativo",h:3,o:true},
+{n:"Hosting aplicativo",h:3,o:true},
+{n:"Configuración servicios Speech to Text",h:3,o:true},
+{n:"Configuración de formularios de Synchro",h:5,o:false}
+];
+
+const fmt=v=>new Intl.NumberFormat("es-CO",{style:"currency",currency:"COP",maximumFractionDigits:0}).format(v);
+const fmtRate=v=>new Intl.NumberFormat("es-CO",{maximumFractionDigits:0}).format(v);
+const tb=document.getElementById("tb");
+const rateInput=document.getElementById("rate");
+
+function getRate(){
+return parseInt(rateInput.value.replace(/\D/g,""))||0;
+}
+
+function formatRateInput(){
+const v=getRate();
+if(v>0)rateInput.value=fmtRate(v);
+}
+
+rateInput.addEventListener("input",()=>{
+const pos=rateInput.selectionStart;
+const raw=rateInput.value.replace(/\D/g,"");
+rateInput.value=raw;
+update();
+});
+rateInput.addEventListener("blur",formatRateInput);
+
+function update(){
+const rate=getRate();
+let th=0,tp=0,tm=0;
+document.querySelectorAll(".mc").forEach((cb,i)=>{
+const hrs=parseInt(document.querySelectorAll(".hrs")[i].value)||0;
+const price=hrs*rate;
+document.querySelectorAll(".price-val")[i].textContent=fmt(price);
+if(cb.checked){th+=hrs;tp+=price;tm++;}
+});
+document.getElementById("th").textContent=th;
+document.getElementById("tp").textContent=fmt(tp);
+document.getElementById("tm").textContent=tm;
+}
+
+modules.forEach((m,i)=>{
+const tr=document.createElement("tr");
+if(m.o)tr.className="mandatory";
+tr.innerHTML=`<td><input type="checkbox" class="mc" ${m.o?"checked disabled":""}/></td>
+<td>${m.n}</td>
+<td class="num"><input type="number" class="hrs" min="1" max="999" value="${m.h}"/><div class="orig">Base: ${m.h}h</div></td>
+<td class="num"><span class="price-val">${fmt(m.h*DEFAULT_RATE)}</span></td>
+<td>${m.o?'<span class="tag">Obligatorio</span>':''}</td>`;
+tb.appendChild(tr);
+});
+
+document.querySelectorAll(".mc").forEach(cb=>cb.addEventListener("change",update));
+document.querySelectorAll(".hrs").forEach(inp=>inp.addEventListener("input",update));
+update();
+
+function resetAll(){
+rateInput.value=fmtRate(DEFAULT_RATE);
+document.querySelectorAll(".hrs").forEach((inp,i)=>{inp.value=modules[i].h;});
+document.querySelectorAll(".mc").forEach((cb,i)=>{if(!modules[i].o)cb.checked=false;});
+update();
+}
+
+function copySelection(){
+const rate=getRate();
+let lines=["MÓDULOS SELECCIONADOS",`Valor hora: ${fmt(rate)}`,""];
+let th=0,tp=0;
+const hrs=document.querySelectorAll(".hrs");
+document.querySelectorAll(".mc").forEach((cb,i)=>{
+if(cb.checked){
+const h=parseInt(hrs[i].value)||0;
+const p=h*rate;
+const mod=h!==modules[i].h?` (modificado, base: ${modules[i].h}h)`:"";
+lines.push(`• ${modules[i].n} — ${h}h${mod} — ${fmt(p)}`);
+th+=h;tp+=p;
+}
+});
+lines.push("",`TOTAL: ${th} horas | ${fmt(tp)}`);
+navigator.clipboard.writeText(lines.join("\n")).then(()=>alert("Selección copiada al portapapeles")).catch(()=>alert("No se pudo copiar"));
+}
+</script>
+</body>
+</html>
