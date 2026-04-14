@@ -5,15 +5,51 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Selector de módulos — IAC</title>
 <style>
+
+/* 1. Hacemos que el contenedor sea pegajoso */
+.header-sticky {
+  position: sticky;
+  top: 0;
+  background: #f5f5f5; /* Mismo color que el fondo del body para ocultar la tabla al pasar */
+  z-index: 1000;       /* Asegura que siempre esté por encima de la tabla */
+  padding-top: 1rem;   /* Espacio extra arriba para que no pegue al borde del navegador */
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e0e0e0; /* Opcional: una línea sutil para separar del contenido */
+}
+
+/* 2. Ajuste opcional para el cuerpo */
+body {
+  padding-top: 0; /* Eliminamos el padding superior original para que el sticky pegue al tope */
+}
+
+/* 3. Espaciado para la tabla */
+.card {
+  margin-top: 1rem;
+}
+
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',system-ui,sans-serif;background:#f5f5f5;color:#1a1a1a;padding:2rem;max-width:900px;margin:0 auto}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f5f5f5;color:#1a1a1a;padding:2rem;max-width:960px;margin:0 auto}
 h1{font-size:20px;font-weight:600;margin-bottom:0.25rem}
-.sub{font-size:14px;color:#666;margin-bottom:1.5rem}
-.rate-bar{display:flex;align-items:center;gap:12px;background:#fff;border-radius:12px;padding:1rem 1.25rem;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:1rem;flex-wrap:wrap}
-.rate-bar label{font-size:14px;font-weight:600;color:#444}
-.rate-bar input{width:150px;padding:8px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:16px;font-weight:600;font-family:inherit;text-align:right;font-variant-numeric:tabular-nums}
-.rate-bar input:focus{outline:none;border-color:#1a6fbf;box-shadow:0 0 0 3px rgba(26,111,191,.15)}
-.rate-bar span{font-size:14px;color:#888}
+.sub{font-size:14px;color:#666;margin-bottom:1.25rem}
+
+.top-bar{display:flex;gap:12px;flex-wrap:wrap;align-items:stretch;margin-bottom:1rem}
+.top-bar .cell{background:#fff;border-radius:10px;padding:10px 16px;box-shadow:0 1px 3px rgba(0,0,0,.08);display:flex;flex-direction:column;justify-content:center}
+.top-bar .cell.rate{flex-direction:row;align-items:center;gap:10px}
+.top-bar .cell small{font-size:11px;color:#888;display:block;text-transform:uppercase;letter-spacing:.4px}
+.top-bar .cell .val{font-size:22px;font-weight:700;margin-top:2px;white-space:nowrap}
+.top-bar .cell .val.usd{color:#f39c12}
+.rate-input{width:130px;padding:7px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:15px;font-weight:600;font-family:inherit;text-align:right;font-variant-numeric:tabular-nums}
+.rate-input:focus{outline:none;border-color:#f39c12;box-shadow:0 0 0 3px rgba(26,111,191,.15)}
+.rate-label{font-size:13px;font-weight:600;color:#444;white-space:nowrap}
+.rate-unit{font-size:13px;color:#888}
+
+:root {
+  --primary: #000000;     /* Azul IAC */
+  --accent: #f39c12;      /* Naranja IAC (Metodología) */
+  --bg: #f8f9fa;
+  --text: #2c3e50;
+}
+
 .card{background:#fff;border-radius:12px;padding:1.5rem;box-shadow:0 1px 3px rgba(0,0,0,.08)}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th{text-align:left;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:#888;padding:8px 10px;border-bottom:2px solid #e0e0e0}
@@ -21,145 +57,491 @@ td{padding:10px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
 tr:hover{background:#fafafa}
 tr.mandatory{background:#f8fcff}
 .num{text-align:right;font-variant-numeric:tabular-nums}
-.tag{font-size:11px;padding:3px 10px;border-radius:20px;background:#e0f0ff;color:#1a6fbf;font-weight:600}
-.totals{display:flex;gap:16px;margin-top:1.5rem;flex-wrap:wrap}
-.metric{flex:1;min-width:140px;background:#f8f8f8;border-radius:10px;padding:1rem 1.25rem}
-.metric small{font-size:13px;color:#888;display:block}
-.metric .val{font-size:26px;font-weight:700;margin-top:4px;color:#1a1a1a}
-input[type=checkbox]{width:18px;height:18px;cursor:pointer;accent-color:#1a6fbf}
-input.hrs{width:60px;text-align:center;padding:6px 8px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;font-variant-numeric:tabular-nums}
-input.hrs:focus{outline:none;border-color:#1a6fbf;box-shadow:0 0 0 3px rgba(26,111,191,.15)}
-input.hrs::-webkit-inner-spin-button{opacity:1}
-.orig{font-size:11px;color:#aaa;margin-top:2px}
-.actions{margin-top:1.5rem;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.tag{font-size:11px;padding:3px 10px;border-radius:20px;background:#e0f0ff;color:#413e3e;font-weight:600}
+
+.hrs-display{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+.hrs-extra{font-size:11px;color:#f39c12;font-weight:600}
+
+.module-name{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none}
+.module-name .arrow{font-size:10px;color:#aaa;transition:transform .2s;width:16px;text-align:center}
+.module-name .arrow.open{transform:rotate(90deg)}
+.module-name span{flex:1}
+
+.detail{display:none;padding:8px 0 4px 24px;font-size:13px;color:#555;border-bottom:1px solid #f0f0f0}
+.detail.open{display:block}
+.detail p{margin-bottom:8px;line-height:1.5}
+.detail .sub-label{font-weight:600;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px}
+.detail .sub-option{display:flex;align-items:center;gap:8px;padding:4px 0}
+.detail .sub-option input[type=radio]{accent-color:#f39c12;width:16px;height:16px}
+.detail .sub-option label{cursor:pointer;font-size:13px}
+
+input[type=checkbox]{width:18px;height:18px;cursor:pointer;accent-color:#f39c12}
+
+.actions{margin-top:1.25rem;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
 .actions button{padding:10px 20px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer}
-.btn-primary{background:#1a6fbf;color:#fff}
-.btn-primary:hover{background:#155a9c}
+.btn-primary{background:#f39c12;color:#fff}
+.btn-primary:hover{background:#f89e0d}
 .btn-secondary{background:#e8e8e8;color:#444}
 .btn-secondary:hover{background:#ddd}
-@media(max-width:600px){body{padding:1rem}.totals{flex-direction:column}input.hrs{width:50px}.rate-bar input{width:120px}}
+@media(max-width:700px){body{padding:1rem}.top-bar{flex-direction:column}.rate-input{width:110px}}
 </style>
 </head>
 <body>
-<h1>Alcance funcional de la solución</h1>
-<p class="sub">Selecciona los módulos y ajusta las horas de esfuerzo según la necesidad de tu proyecto.</p>
+  <div class="header-sticky">
+    <h1>Calculdora de Bitácora</h1>
+    <p class="sub">Selecciona los módulos y ajusta el alcance con los submódulos según la necesidad de tu proyecto.</p>
 
-<div class="rate-bar">
-<label>Valor hora:</label>
-<input type="text" id="rate" value="243.000"/>
-<span>COP / hora</span>
-</div>
+    <div class="top-bar">
+    <div class="cell rate">
+    <span class="rate-label">Valor hora:</span>
+    <input type="text" class="rate-input" id="rate" value="243.000"/>
+    <span class="rate-unit">COP/h</span>
+    </div>
+    <div class="cell"><small>Horas</small><div class="val" id="th">0</div></div>
+    <div class="cell"><small>Presupuesto COP</small><div class="val" id="tp">$0</div></div>
+    <div class="cell"><small>Presupuesto USD</small><div class="val usd" id="tu">$0</div></div>
+    <div class="cell"><small>Módulos</small><div class="val" id="tm">0</div></div>
+    </div>
+
+    <div class="actions">
+    <button class="btn-secondary" onclick="resetAll()">Restaurar valores</button>
+    <button class="btn-primary" onclick="copySelection()">Copiar selección</button>
+    </div>
+  </div>
+
 
 <div class="card">
-<table>
-<thead><tr><th></th><th>Módulo</th><th class="num">Horas</th><th class="num">Precio COP</th><th></th></tr></thead>
-<tbody id="tb"></tbody>
-</table>
+  <table>
+  <thead><tr><th></th><th>Módulo</th><th class="num">Horas</th><th class="num">Precio COP</th><th></th></tr></thead>
+  <tbody id="tb"></tbody>
+  </table>
 </div>
-<div class="totals">
-<div class="metric"><small>Total horas</small><div class="val" id="th">0</div></div>
-<div class="metric"><small>Total presupuesto</small><div class="val" id="tp">$0</div></div>
-<div class="metric"><small>Módulos seleccionados</small><div class="val" id="tm">0</div></div>
-</div>
-<div class="actions">
-<button class="btn-secondary" onclick="resetAll()">Restaurar valores</button>
-<button class="btn-primary" onclick="copySelection()">Copiar selección</button>
-</div>
+
+
+
 <script>
-const DEFAULT_RATE=243000;
-const modules=[
-{n:"Control de materiales",h:11,o:false},
-{n:"Control de calidad e inventoría",h:11,o:false},
-{n:"Control de personal y cuadrillas",h:15,o:false},
-{n:"Control digital del proyecto",h:18,o:false},
-{n:"Indicadores y tablero de control",h:10,o:false},
-{n:"Asignación de usuarios",h:3,o:false},
-{n:"Generación de reportes en PDF",h:2,o:false},
-{n:"Asignación de proyectos a usuarios",h:3,o:false},
-{n:"Conexiones con herramientas externas (Synchro)",h:6,o:false},
-{n:"Configuración de bases de datos",h:5,o:true},
-{n:"Despliegue aplicativo",h:8,o:true},
-{n:"Personalización aplicativo",h:3,o:true},
-{n:"Hosting aplicativo",h:3,o:true},
-{n:"Configuración servicios Speech to Text",h:3,o:true},
-{n:"Configuración de formularios de Synchro",h:5,o:false}
+const DEFAULT_RATE = 243000;
+const FEE_RATE = 100000; // Nueva tarifa para soporte y mantenimiento
+const USD_RATE = 4000;
+
+/* =========================================================================
+   CONFIGURACIÓN DE MÓDULOS
+   =========================================================================
+   Para agregar o modificar módulos, edita este array.
+
+   Cada módulo tiene:
+   - n:    nombre del módulo
+   - h:    horas base (las que se muestran cuando se selecciona el primer submódulo)
+   - o:    obligatorio (true/false). Si es true, viene pre-seleccionado y no se puede desmarcar
+   - desc: descripción que aparece al desplegar el módulo (puede ser "" si no tiene)
+   - subs: array de submódulos. Cada submódulo tiene:
+       - label:    texto que se muestra al usuario
+       - extraH:   horas ADICIONALES que se suman a las horas base (h)
+                    El primer submódulo siempre debe tener extraH: 0
+                    Ejemplo: si h=11 y extraH=2, el total será 13 horas
+
+   CÓMO REPLICAR EN OTROS MÓDULOS:
+   1. Busca el módulo que quieres modificar en el array de abajo
+   2. Agrega una "desc" con la descripción del módulo
+   3. Agrega un array "subs" siguiendo este formato:
+      subs: [
+        { label: "Opción básica",    extraH: 0 },  // <- siempre 0 para el primero
+        { label: "Opción intermedia", extraH: 2 },  // <- suma 2h a las horas base
+        { label: "Opción avanzada",   extraH: 4 }   // <- suma 4h a las horas base
+      ]
+   4. Guarda y listo — el código genera todo automáticamente
+   ========================================================================= */
+
+const modules = [
+
+  // --- MÓDULO 0: Control de materiales ---
+  {
+    n: "Control de materiales",
+    h: 11,       // horas base
+    o: false,    // no obligatorio
+    desc: "Módulo para el registro, seguimiento y control de los materiales utilizados en obra. Permite gestionar entradas, salidas, inventario en sitio y trazabilidad de uso por actividad.",
+    subs: [
+      { label: "Entre 1 a 3 formularios",  extraH: 0 },  // seleccionado por defecto, sin horas extra
+      { label: "Entre 4 a 6 formularios",  extraH: 2 },  // suma 2h → total 13h
+      { label: "Entre 7 a 10 formularios", extraH: 4 }   // suma 4h → total 15h
+    ]
+  },
+
+  // --- MÓDULO 1: Control de calidad e inventoría ---
+  // Para agregar submódulos, cambia subs:[] por un array como el de arriba
+  { n: "Control de calidad e inventoría",
+    h: 11, 
+    o: false,
+    desc: "Módulo para el registro de hallazgos, validaciones y cumplimiento, permitirá la carga de evidencia fotográfica y documental asociada a la ejecución. Permite el seguimiento a observaciones y cierres",
+    subs: [
+      { label: "Entre 1 a 3 formularios",  extraH: 0 },  // seleccionado por defecto, sin horas extra
+      { label: "Entre 4 a 6 formularios",  extraH: 2 },  // suma 2h → total 13h
+      { label: "Entre 7 a 10 formularios", extraH: 4 }   // suma 4h → total 15h
+    ] 
+  },
+
+  // --- MÓDULO 2: Control de personal y cuadrillas ---
+  { n: "Control de personal y cuadrillas", h: 15,
+    o: false, 
+    desc: "Módulo para el registro de recursos asignados y actividades ejecutadas, permitiendo el seguimiento al rendimiento operativo y estandarización del control de equipos de trabajo.", 
+    subs: [
+      { label: "Entre 1 a 3 formularios",  extraH: 0 },  // seleccionado por defecto, sin horas extra
+      { label: "Entre 4 a 6 formularios",  extraH: 2 },  // suma 2h → total 13h
+      { label: "Entre 6 a 10 formularios", extraH: 4 }   // suma 4h → total 15h
+    ] 
+  },
+
+  // --- MÓDULO 3: Control digital del proyecto ---
+  { n: "Control digital del proyecto", h: 18, 
+    o: false, 
+    desc: "Núcleo funcional de la solución de bitácora digital. diseñado para centralizar la operación en campo, permitiendo el registro diario de novedades, incidentes y avances de obra. La solución garantiza la integridad de la información mediante una arquitectura robusta que soporta el trabajo en entornos con conectividad limitada.", 
+    subs: [
+      { label: "Complejidad media",  extraH: 0 },  // seleccionado por defecto, sin horas extra
+      { label: "Complejidad alta",  extraH: 4 }
+    ] 
+  },
+
+  // --- MÓDULO 4: Indicadores y tablero de control ---
+  { n: "Indicadores y tablero de control", h: 10,   
+    o: false, 
+    desc: "Módulo de inteligencia de negocios para la visualización ejecutiva del proyecto. Permite el seguimiento detallado de retrasos, desvíos de productividad y control presupuestal.", 
+    subs: [
+      { label: "Complejidad media",  extraH: 0 },  // seleccionado por defecto, sin horas extra
+      { label: "Complejidad alta",  extraH: 2 },  // suma 2h → total 13h
+    ] 
+  },
+
+  // --- MÓDULO 5: Asignación de usuarios ---
+  { n: "Asignación de usuarios", h: 3, 
+    o: false, 
+    desc: "Desarrollo para la gestión centralizada de accesos y perfiles que asegura que solo el personal autorizado capture novedades e incidentes. Facilita la administración de roles diferenciados para contratistas, supervisores y directivos, permitiendo una visibilidad 360 del estado del proyecto según el nivel de responsabilidad.", 
+    subs: [
+    ] 
+  },
+
+  // --- MÓDULO 6: Generación de reportes en PDF ---
+  { n: "Generación de reportes en PDF", h: 2, 
+    o: false, 
+    desc: "Permite la creación automatizada de informes técnicos y operativos. Exporta toda la 'Evidencia Permanente', incluyendo registros fotográficos y firmas digitales. ", 
+    subs: [
+      { label: "Plantilla Estándar - Semi personalizada (1 diseño único corporativo)",  extraH: 0 },  // seleccionado por defecto, sin horas extra
+      { label: "Personalización avanzada",  extraH: 2 },  // suma 2h → total 13h
+    ] 
+  },
+
+  // --- MÓDULO 7: Asignación de proyectos a usuarios ---
+  { n: "Asignación de proyectos a usuarios", h: 3, 
+    o: false, 
+    desc: "Configuración para que se le puedan asignar proyectos a usuarios dentro de la aplicación.", 
+    subs: [
+    ] 
+  },
+
+  // --- MÓDULO 8: Conexiones con herramientas externas (Synchro) ---
+  { n: "Conexiones con herramientas externas (Synchro)", h: 6, 
+    o: false, 
+    desc: "Este módulo permite la integración técnica mediante el consumo de APIs para automatizar el intercambio de datos entre la bitácora y herramientas externas como Synchro. Su objetivo es reducir los tiempos de reporte y consolidación de información al eliminar el registro manual duplicado. El funcionamiento está sujeto a la arquitectura definida para garantizar que los avances, incidentes y novedades de obra se sincronicen correctamente según el proyecto y frente de trabajo correspondiente.", 
+    subs: [
+    ] 
+  },
+
+  // --- MÓDULO 9: Configuración de bases de datos (OBLIGATORIO) ---
+  { n: "Configuración de bases de datos", h: 5, 
+    o: true, 
+    desc: "Módulo encargado de centralizar la información operativa y financiera en una sola plataforma. Permite la organización estructurada de los datos por proyecto, fecha, actividad o frente de trabajo, asegurando la trazabilidad operativa y la integración con la arquitectura definida. Además, facilita la estandarización del control entre diferentes sedes, equipos de ejecución y contratistas.", 
+    subs: [
+      { label: "Registro básico de información (usuarios, proyectos y máximo 9 formularios)",  extraH: 0 },  // seleccionado por defecto, sin horas extra
+      { label: "Registro alto de información (usuarios, proyectos con mucha información y máximo 15 formularios)",  extraH: 2 },  // suma 2h → total 13h
+    ] 
+  },
+
+  // --- MÓDULO 10: Despliegue aplicativo (OBLIGATORIO) ---
+  { n: "Despliegue aplicativo", h: 8, 
+    o: true, 
+    desc: "Este módulo garantiza que la plataforma centralizada esté disponible para la captura y consolidación de datos en tiempo real. Contempla la puesta en marcha de la arquitectura necesaria para que la aplicación funcione en dispositivos móviles y tablets, asegurando la visibilidad completa de la operación incluso en condiciones de conectividad limitada", 
+    subs: [
+      
+    ] 
+  },
+
+  // --- MÓDULO 11: Personalización aplicativo (OBLIGATORIO) ---
+  { n: "Personalización aplicativo", h: 3, 
+    o: true, 
+    desc: "Ajustar y configurar el aplicativo con los colores y logo que el cliente solicite.", 
+    subs: [
+      { label: "Personalización media",  extraH: 0 },  // seleccionado por defecto, sin horas extra
+      { label: "Personalización alta",  extraH: 2 },  // suma 2h → total 13h
+    ] 
+  },
+
+  // --- MÓDULO 12: Hosting aplicativo (OBLIGATORIO) ---
+  { n: "Hosting aplicativo", h: 3,
+    o: true, 
+    desc: "Servidor en donde se aloja el código y bases de datos pertenecientes al aplicativo.", 
+    subs: [
+    ] 
+  },
+
+  // --- MÓDULO 13: Configuración servicios Speech to Text (OBLIGATORIO) ---
+  { n: "Configuración servicios Speech to Text", h: 3, 
+    o: true, 
+    desc: "Servicio de Azure que permite la transcripción de voz a texto. Acá se incluye toda la configuración del servicio y de el grupo de recursos único por cliente.", 
+    subs: [
+    ] 
+  },
+
+  // --- MÓDULO 14: Configuración de formularios de Synchro ---
+  { n: "Configuración de formularios de Synchro", h: 5, 
+    o: false, 
+    desc: "Configuración de las 4 plantillas predetrminadas de formularios en los proyectos de Synchro Control", 
+    subs: [
+      { label: "Formularios predeterminados",  extraH: 0 },  // seleccionado por defecto, sin horas extra
+      { label: "Entre 1 a 3 formularios personalizados",  extraH: 3 },  // suma 2h → total 13h
+      { label: "Entre 4 a 6 formularios personalizados", extraH: 5 }   // suma 4h → total 15h
+    ] 
+  },
+
+  // --- SECCIÓN: FEE MENSUAL ---
+  { 
+    n: "Soporte técnico", 
+    h: 4, // Horas base mensuales
+    o: false,
+    isFee: true, 
+    desc: "Asegura la disponibilidad de la solución mediante la resolución de dudas y gestión de incidentes reportados por los usuarios de Fenix Group.", 
+    subs: [
+      { label: "Soporte Estándar (Respuesta prioritaria), incluye 4 horas mensuales", extraH: 0 },
+      { label: "Soporte +4 horas", extraH: 4 }
+    ] 
+  },
+  { 
+    n: "Gestión Infraestructura", 
+    h: 2,
+    isFee: true, 
+    o: false, 
+    desc: "Monitoreo y administración del entorno de servidores y bases de datos para garantizar la visibilidad 360 en tiempo real.", 
+    subs: [
+      { label: "Monitoreo y Alertas (Preventivo)", extraH: 0 },
+      { label: "Administración Proactiva (Optimización)", extraH: 3 },
+      { label: "Gestión Enterprise (Seguridad avanzada y backups críticos)", extraH: 6 }
+    ] 
+  },
+  { 
+    n: "Mantenimiento de la solución", 
+    h: 5, 
+    o: false, 
+    isFee: true,
+    desc: "Garantiza la evolución de la bitácora digital, incluyendo actualizaciones de seguridad y ajustes menores en los formularios de campo.", 
+    subs: [
+      { label: "Mantenimiento Correctivo (Solo errores)", extraH: 0 },
+      { label: "Mantenimiento Preventivo (Actualizaciones periódicas)", extraH: 3 },
+      { label: "Mantenimiento Evolutivo (Mejoras continuas en UX/UI)", extraH: 5 }
+    ] 
+  }
+
+
 ];
 
-const fmt=v=>new Intl.NumberFormat("es-CO",{style:"currency",currency:"COP",maximumFractionDigits:0}).format(v);
-const fmtRate=v=>new Intl.NumberFormat("es-CO",{maximumFractionDigits:0}).format(v);
-const tb=document.getElementById("tb");
-const rateInput=document.getElementById("rate");
 
-function getRate(){
-return parseInt(rateInput.value.replace(/\D/g,""))||0;
+/* =========================================================================
+   FUNCIONES DE FORMATO — no necesitas modificar esta sección
+   ========================================================================= */
+const fmtCOP = v => new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v);
+const fmtUSD = v => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(v);
+const fmtNum = v => new Intl.NumberFormat("es-CO", { maximumFractionDigits: 0 }).format(v);
+const tb = document.getElementById("tb");
+const rateInput = document.getElementById("rate");
+
+function getRate() { return parseInt(rateInput.value.replace(/\D/g, "")) || 0; }
+
+rateInput.addEventListener("input", () => { rateInput.value = rateInput.value.replace(/\D/g, ""); update(); });
+rateInput.addEventListener("blur", () => { const v = getRate(); if (v > 0) rateInput.value = fmtNum(v); });
+
+
+/* =========================================================================
+   getModuleHours(i) — calcula las horas totales de un módulo
+   Horas base + horas extra del submódulo seleccionado
+   ========================================================================= */
+function getModuleHours(i) {
+  let total = modules[i].h; // horas base
+  if (modules[i].subs.length > 0) {
+    // Busca qué radio button está seleccionado para este módulo
+    const selected = document.querySelector(`input[name="sub_${i}"]:checked`);
+    if (selected) {
+      total += parseInt(selected.dataset.extra) || 0; // suma las horas extra del submódulo
+    }
+  }
+  return total;
 }
 
-function formatRateInput(){
-const v=getRate();
-if(v>0)rateInput.value=fmtRate(v);
+
+/* =========================================================================
+   update() — recalcula todos los totales
+   Se ejecuta cada vez que se selecciona/deselecciona un módulo,
+   se cambia un submódulo, o se modifica la tarifa hora
+   ========================================================================= */
+function update() {
+  const rate = getRate();
+  let totalH = 0, totalP = 0, totalM = 0;
+
+  document.querySelectorAll(".mc").forEach((cb, i) => {
+    const hrs = getModuleHours(i);
+    // CAMBIO AQUÍ: Si el módulo es isFee, usa 100000, si no, usa el rate del input
+    const valorHoraAplicado = modules[i].isFee ? 100000 : rate;
+    const price = hrs * valorHoraAplicado;
+    const extra = hrs - modules[i].h;
+
+    // Actualiza la celda de horas del módulo
+    const hrsCell = document.getElementById("hrs-" + i);
+    hrsCell.innerHTML = extra > 0
+      ? `<span class="hrs-display">${hrs}</span> <span class="hrs-extra">(+${extra})</span>`
+      : `<span class="hrs-display">${hrs}</span>`;
+
+    // Actualiza la celda de precio
+    document.querySelectorAll(".price-val")[i].textContent = fmtCOP(price);
+
+    // Si el módulo está seleccionado, suma a los totales
+    if (cb.checked) { totalH += hrs; totalP += price; totalM++; }
+
+    // Actualiza el precio en la fila
+    document.querySelectorAll(".price-val")[i].textContent = fmtCOP(price);
+
+  });
+
+  document.getElementById("th").textContent = totalH;
+  document.getElementById("tp").textContent = fmtCOP(totalP);
+  document.getElementById("tu").textContent = fmtUSD(Math.round(totalP / USD_RATE));
+  document.getElementById("tm").textContent = totalM;
 }
 
-rateInput.addEventListener("input",()=>{
-const pos=rateInput.selectionStart;
-const raw=rateInput.value.replace(/\D/g,"");
-rateInput.value=raw;
+
+/* =========================================================================
+   GENERACIÓN DE LA TABLA — no necesitas modificar esta sección
+   Recorre el array modules y genera las filas automáticamente
+   ========================================================================= */
+modules.forEach((m, i) => {
+  // --- NUEVO: Inyectar separador para el FEE ---
+  if (m.n === "Soporte técnico") {
+    const separator = document.createElement("tr");
+    separator.innerHTML = `<td colspan="5" style="background:#eee; padding:10px; font-weight:bold; color:#555; text-align:center; text-transform:uppercase; font-size:11px; letter-spacing:1px;">Recurrente Mensual (Fee)</td>`;
+    tb.appendChild(separator);
+  }
+
+  const tr = document.createElement("tr");
+  if (m.o) tr.className = "mandatory";
+
+  // CAMBIO AQUÍ: Definir qué tarifa mostrar al cargar la página
+  const tarifaInicial = m.isFee ? 100000 : DEFAULT_RATE;
+  const precioInicial = m.h * tarifaInicial;
+
+
+  const hasDetail = m.desc || m.subs.length;
+  const arrowHtml = hasDetail
+    ? '<span class="arrow">&#9654;</span>'
+    : '<span style="width:16px;display:inline-block"></span>';
+
+  tr.innerHTML = `
+    <td><input type="checkbox" class="mc" ${m.o ? "checked disabled" : ""}/></td>
+    <td><div class="module-name" data-idx="${i}">${arrowHtml}<span>${m.n}</span></div></td>
+    <td class="num" id="hrs-${i}"><span class="hrs-display">${m.h}</span></td>
+    <td class="num"><span class="price-val">${fmtCOP(precioInicial)}</span></td> <td>${m.o ? '<span class="tag">Obligatorio</span>' : ''}</td>`;
+  tb.appendChild(tr);
+
+  // Si el módulo tiene descripción o submódulos, genera la fila desplegable
+  if (hasDetail) {
+    const detailTr = document.createElement("tr");
+
+    // Genera los radio buttons de submódulos
+    // data-extra="N" contiene las horas adicionales de cada opción
+    let subsHtml = "";
+    if (m.subs.length) {
+      subsHtml = `<div class="sub-label">Submódulos</div>` + m.subs.map((s, si) =>
+        `<div class="sub-option">
+          <input type="radio" name="sub_${i}" id="sub_${i}_${si}"
+                 value="${s.label}" data-extra="${s.extraH}"
+                 ${si === 0 ? "checked" : ""}/>
+          <label for="sub_${i}_${si}">
+            ${s.label}
+            ${s.extraH > 0 ? `<span style="color:#1a6fbf;font-size:12px;font-weight:600">(+${s.extraH}h)</span>` : ''}
+          </label>
+        </div>`
+      ).join("");
+    }
+
+    detailTr.innerHTML = `<td colspan="5"><div class="detail" id="detail-${i}">
+      ${m.desc ? `<p>${m.desc}</p>` : ""}${subsHtml}</div></td>`;
+    tb.appendChild(detailTr);
+  }
+});
+
+
+/* =========================================================================
+   EVENT LISTENERS — conecta clics y cambios con update()
+   ========================================================================= */
+
+// Desplegar/colapsar detalle al hacer clic en el nombre del módulo
+document.querySelectorAll(".module-name").forEach(el => {
+  const idx = el.dataset.idx;
+  const detail = document.getElementById("detail-" + idx);
+  if (!detail) return;
+  el.addEventListener("click", () => {
+    const arrow = el.querySelector(".arrow");
+    detail.classList.toggle("open");
+    if (arrow) arrow.classList.toggle("open");
+  });
+});
+
+// Recalcular al seleccionar/deseleccionar módulos
+document.querySelectorAll(".mc").forEach(cb => cb.addEventListener("change", update));
+
+// Recalcular al cambiar submódulos (radio buttons)
+document.querySelectorAll('input[type=radio]').forEach(r => r.addEventListener("change", update));
+
+// Cálculo inicial
 update();
-});
-rateInput.addEventListener("blur",formatRateInput);
 
-function update(){
-const rate=getRate();
-let th=0,tp=0,tm=0;
-document.querySelectorAll(".mc").forEach((cb,i)=>{
-const hrs=parseInt(document.querySelectorAll(".hrs")[i].value)||0;
-const price=hrs*rate;
-document.querySelectorAll(".price-val")[i].textContent=fmt(price);
-if(cb.checked){th+=hrs;tp+=price;tm++;}
-});
-document.getElementById("th").textContent=th;
-document.getElementById("tp").textContent=fmt(tp);
-document.getElementById("tm").textContent=tm;
+
+/* =========================================================================
+   BOTONES DE ACCIÓN
+   ========================================================================= */
+
+function resetAll() {
+  rateInput.value = fmtNum(DEFAULT_RATE);
+  document.querySelectorAll(".mc").forEach((cb, i) => { if (!modules[i].o) cb.checked = false; });
+  // Restaura todos los radio buttons al primer submódulo
+  modules.forEach((m, i) => {
+    if (m.subs.length) {
+      document.getElementById("sub_" + i + "_0").checked = true;
+    }
+  });
+  update();
 }
 
-modules.forEach((m,i)=>{
-const tr=document.createElement("tr");
-if(m.o)tr.className="mandatory";
-tr.innerHTML=`<td><input type="checkbox" class="mc" ${m.o?"checked disabled":""}/></td>
-<td>${m.n}</td>
-<td class="num"><input type="number" class="hrs" min="1" max="999" value="${m.h}"/><div class="orig">Base: ${m.h}h</div></td>
-<td class="num"><span class="price-val">${fmt(m.h*DEFAULT_RATE)}</span></td>
-<td>${m.o?'<span class="tag">Obligatorio</span>':''}</td>`;
-tb.appendChild(tr);
-});
+function copySelection() {
+  const rate = getRate();
+  let lines = ["MÓDULOS SELECCIONADOS", `Valor hora desarrollo: ${fmtCOP(rate)}`, `Valor hora fee: ${fmtCOP(100000)}`, ""];
+  let th = 0, tp = 0;
 
-document.querySelectorAll(".mc").forEach(cb=>cb.addEventListener("change",update));
-document.querySelectorAll(".hrs").forEach(inp=>inp.addEventListener("input",update));
-update();
+  document.querySelectorAll(".mc").forEach((cb, i) => {
+    if (cb.checked) {
+      const h = getModuleHours(i);
+      const currentRate = modules[i].isFee ? 100000 : rate;
+      const p = h * currentRate; // CORRECCIÓN: Usar currentRate
+      const extra = h - modules[i].h;
+      const extraTxt = extra > 0 ? ` (+${extra}h)` : "";
+      let subSel = "";
+      const radio = document.querySelector(`input[name="sub_${i}"]:checked`);
+      if (radio) subSel = ` → ${radio.value}`;
+      lines.push(`• ${modules[i].n} — ${h}h${extraTxt} — ${fmtCOP(p)}${subSel}`);
+      th += h; tp += p;
+    }
+  });
 
-function resetAll(){
-rateInput.value=fmtRate(DEFAULT_RATE);
-document.querySelectorAll(".hrs").forEach((inp,i)=>{inp.value=modules[i].h;});
-document.querySelectorAll(".mc").forEach((cb,i)=>{if(!modules[i].o)cb.checked=false;});
-update();
+  lines.push("", `TOTAL: ${th} horas | ${fmtCOP(tp)} | ${fmtUSD(Math.round(tp / USD_RATE))}`);
+  navigator.clipboard.writeText(lines.join("\n")).then(() => alert("Selección copiada")).catch(() => alert("Error al copiar"));
 }
 
-function copySelection(){
-const rate=getRate();
-let lines=["MÓDULOS SELECCIONADOS",`Valor hora: ${fmt(rate)}`,""];
-let th=0,tp=0;
-const hrs=document.querySelectorAll(".hrs");
-document.querySelectorAll(".mc").forEach((cb,i)=>{
-if(cb.checked){
-const h=parseInt(hrs[i].value)||0;
-const p=h*rate;
-const mod=h!==modules[i].h?` (modificado, base: ${modules[i].h}h)`:"";
-lines.push(`• ${modules[i].n} — ${h}h${mod} — ${fmt(p)}`);
-th+=h;tp+=p;
-}
-});
-lines.push("",`TOTAL: ${th} horas | ${fmt(tp)}`);
-navigator.clipboard.writeText(lines.join("\n")).then(()=>alert("Selección copiada al portapapeles")).catch(()=>alert("No se pudo copiar"));
-}
+window.resetAll = resetAll;
+window.copySelection = copySelection;
 </script>
 </body>
 </html>
