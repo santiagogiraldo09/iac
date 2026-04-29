@@ -334,13 +334,6 @@ const modules = [
     isFee: true, 
     isFixed: true, 
     desc: "Se enumeran los valores y servicios utilizados en la app que tienen un pago mensual por parte del cliente. Hosting: 75.000 ($18,77 USD), Dominio: 6.000 ($1,50 USD), servicio de speech to text para 5 usuarios: 685.000 ($171,43 USD, asumiendo que cada usuario se toma 24 horas de transcripción mensual)", 
-    // Nuevos campos para el cálculo dinámico
-    calc: {
-      forms: 4,        // Cantidad de formularios (editable)
-      minPerForm: 3,   // Minutos por formulario (fijo en lógica, pero aquí como base)
-      projects: 2,     // Proyectos por usuario (editable)
-      timesPerDay: 1   // Veces al día (editable)
-    },
     subs: [
     ] 
   },
@@ -493,18 +486,7 @@ modules.forEach((m, i) => {
     // Genera los radio buttons de submódulos
     // data-extra="N" contiene las horas adicionales de cada opción
     let subsHtml = "";
-    if (m.n === "Gestión Infraestructura") {
-      subsHtml = `
-        <div class="sub-label">Configuración de Consumo por Usuario</div>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-          <div><label><small>Formularios:</small></label><input type="number" class="calc-input" data-key="forms" value="${m.calc.forms}" style="width:50px"></div>
-          <div><label><small>Min/Formulario:</small></label><input type="number" value="${m.calc.minPerForm}" disabled style="width:50px; background:#eee"></div>
-          <div><label><small>Proyectos/User:</small></label><input type="number" class="calc-input" data-key="projects" value="${m.calc.projects}" style="width:50px"></div>
-          <div><label><small>Veces al día:</small></label><input type="number" class="calc-input" data-key="timesPerDay" value="${m.calc.timesPerDay}" style="width:50px"></div>
-        </div>
-        <div id="infra-stats" style="background:#f9f9f9; padding:10px; border-radius:6px; font-size:12px; border:1px solid #eee">
-          </div>`;
-    }else if (m.subs.length) {
+    if (m.subs.length) {
       subsHtml = `<div class="sub-label">Submódulos</div>` + m.subs.map((s, si) =>
         `<div class="sub-option">
           <input type="radio" name="sub_${i}" id="sub_${i}_${si}"
