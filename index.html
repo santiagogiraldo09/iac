@@ -98,6 +98,17 @@ input[type=checkbox]{width:18px;height:18px;cursor:pointer;accent-color:#f39c12}
 .btn-secondary{background:#e8e8e8;color:#444}
 .btn-secondary:hover{background:#ddd}
 @media(max-width:700px){body{padding:1rem}.top-bar{flex-direction:column}.rate-input{width:110px}}
+.infra-calc { padding: 4px 0 8px 0; }
+.infra-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid #f5f5f5; }
+.infra-row label { flex: 1; font-size: 13px; color: #555; }
+.infra-row input[type=number] { width: 80px; padding: 5px 8px; border: 1.5px solid #ddd; border-radius: 6px; font-size: 14px; font-weight: 600; text-align: right; font-family: inherit; }
+.infra-row input[type=number]:focus { outline: none; border-color: #f39c12; }
+.infra-row input[type=number][readonly] { background: #f5f5f5; color: #888; cursor: not-allowed; border-style: dashed; }
+.infra-results { margin-top: 10px; background: #fffbf2; border: 1px solid #f39c12; border-radius: 8px; padding: 10px 14px; display: flex; gap: 20px; flex-wrap: wrap; }
+.infra-results .res-item { text-align: center; }
+.infra-results .res-item small { font-size: 10px; color: #888; text-transform: uppercase; display: block; }
+.infra-results .res-item b { font-size: 15px; color: #f39c12; }
+
 </style>
 </head>
 <body>
@@ -138,6 +149,8 @@ const DEFAULT_RATE = 243000;
 const FEE_RATE = 200000; // Nueva tarifa para soporte y mantenimiento
 const USD_RATE = 4000;
 const INFRA_FIXED_COST = 766000; // Costo base fijo
+const INFRA_FIXED_BASE = 81000;        // Hosting 75.000 + Dominio 6.000
+const SPEECH_RATE_PER_HOUR = 5708;     // ≈ 685.000 / 5 usuarios / 24 hrs
 
 /* =========================================================================
    CONFIGURACIÓN DE MÓDULOS
@@ -334,8 +347,7 @@ const modules = [
     isFee: true, 
     isFixed: true, 
     desc: "Se enumeran los valores y servicios utilizados en la app que tienen un pago mensual por parte del cliente. Hosting: 75.000 ($18,77 USD), Dominio: 6.000 ($1,50 USD), servicio de speech to text para 5 usuarios: 685.000 ($171,43 USD, asumiendo que cada usuario se toma 24 horas de transcripción mensual)", 
-    subs: [
-    ] 
+    subs: [] 
   },
   { 
     n: "Mantenimiento de la solución", 
@@ -385,6 +397,26 @@ function getModuleHours(i) {
   return total;
 }
 
+function updateInfraCalc() {
+  const forms    = parseInt(document.getElementById("infra-forms")?.value)    || 4;
+  const projects = parseInt(document.getElementById("infra-projects")?.value) || 2;
+  const times    = parseInt(document.getElementById("infra-times")?.value)    || 1;
+  const minDay   = forms * 3 * projects * times;  // 3 min/formulario fijo
+  const minMonth = minDay * 30;
+  const hrsMonth = (minMonth / 60).toFixed(1);
+  const d = document.getElementById("ir-day");
+  const m = document.getElementById("ir-month");
+  const h = document.getElementById("ir-hrs");
+  if (d) d.textContent = minDay;
+  if (m) m.textContent = minMonth;
+  if (h) h.textContent = hrsMonth;
+}
+
+function getInfraPrice() {
+  const users    = parseInt(document.getElementById("infra-users")?.value) || 5;
+  const hrsMonth = parseFloat(document.getElementById("ir-hrs")?.textContent) || 0;
+  return INFRA_FIXED_BASE + Math.round(users * hrsMonth * SPEECH_RATE_PER_HOUR);
+}
 
 /* =========================================================================
    update() — recalcula todos los totales
@@ -403,8 +435,9 @@ function update() {
     const hrs = getModuleHours(i);
     let price = 0;
 
-    if (m.isFixed) {
-      // Lógica para Gestión Infraestructura: Costo fijo de 766.000
+    if (m.isInfra) {
+      price = getInfraPrice();
+    } else if (m.isFixed) {
       price = INFRA_FIXED_COST;
     } else {
       // Lógica por horas según tipo de módulo
@@ -483,26 +516,62 @@ modules.forEach((m, i) => {
   if (hasDetail) {
     const detailTr = document.createElement("tr");
 
-    // Genera los radio buttons de submódulos
-    // data-extra="N" contiene las horas adicionales de cada opción
-    let subsHtml = "";
-    if (m.subs.length) {
-      subsHtml = `<div class="sub-label">Submódulos</div>` + m.subs.map((s, si) =>
-        `<div class="sub-option">
-          <input type="radio" name="sub_${i}" id="sub_${i}_${si}"
-                 value="${s.label}" data-extra="${s.extraH}"
-                 ${si === 0 ? "checked" : ""}/>
-          <label for="sub_${i}_${si}">
-            ${s.label}
-            ${s.extraH > 0 ? `<span style="color:#1a6fbf;font-size:12px;font-weight:600">(+${s.extraH}h)</span>` : ''}
-          </label>
-        </div>`
-      ).join("");
-    }
+    if (m.isInfra) {
+      detailTr.innerHTML = `<td colspan="5"><div class="detail" id="detail-${i}">
+        <p>${m.desc}</p>
+        <div class="infra-calc">
+          <div class="infra-row">
+            <label>Cantidad de usuarios</label>
+            <input type="number" id="infra-users" value="5" min="1"/>
+          </div>
+          <div class="infra-row">
+            <label>Formularios por usuario</label>
+            <input type="number" id="infra-forms" value="4" min="1"/>
+          </div>
+          <div class="infra-row">
+            <label>Minutos por formulario</label>
+            <input type="number" id="infra-mins" value="3" min="1" readonly title="Valor fijo — no editable"/>
+          </div>
+          <div class="infra-row">
+            <label>Proyectos por usuario</label>
+            <input type="number" id="infra-projects" value="2" min="1"/>
+          </div>
+          <div class="infra-row">
+            <label>Veces de llenado por día</label>
+            <input type="number" id="infra-times" value="1" min="1"/>
+          </div>
+          <div class="infra-results">
+            <div class="res-item"><small>Min / usuario / día</small><b id="ir-day">24</b></div>
+            <div class="res-item"><small>Min / usuario / mes</small><b id="ir-month">720</b></div>
+            <div class="res-item"><small>Hrs / usuario / mes</small><b id="ir-hrs">12.0</b></div>
+          </div>
+        </div>
+      </div></td>`;
+      tb.appendChild(detailTr);
 
-    detailTr.innerHTML = `<td colspan="5"><div class="detail" id="detail-${i}">
-      ${m.desc ? `<p>${m.desc}</p>` : ""}${subsHtml}</div></td>`;
-    tb.appendChild(detailTr);
+      ["infra-users", "infra-forms", "infra-projects", "infra-times"].forEach(id => {
+        document.getElementById(id).addEventListener("input", () => { updateInfraCalc(); update(); });
+      });
+
+    } else {
+      let subsHtml = "";
+      if (m.subs.length) {
+        subsHtml = `<div class="sub-label">Submódulos</div>` + m.subs.map((s, si) =>
+          `<div class="sub-option">
+            <input type="radio" name="sub_${i}" id="sub_${i}_${si}"
+                  value="${s.label}" data-extra="${s.extraH}"
+                  ${si === 0 ? "checked" : ""}/>
+            <label for="sub_${i}_${si}">
+              ${s.label}
+              ${s.extraH > 0 ? `<span style="color:#1a6fbf;font-size:12px;font-weight:600">(+${s.extraH}h)</span>` : ''}
+            </label>
+          </div>`
+        ).join("");
+      }
+      detailTr.innerHTML = `<td colspan="5"><div class="detail" id="detail-${i}">
+        ${m.desc ? `<p>${m.desc}</p>` : ""}${subsHtml}</div></td>`;
+      tb.appendChild(detailTr);
+    }
   }
 });
 
@@ -546,6 +615,13 @@ function resetAll() {
       document.getElementById("sub_" + i + "_0").checked = true;
     }
   });
+  // Restaura inputs de infraestructura
+  const infraDefaults = { "infra-users": 5, "infra-forms": 4, "infra-projects": 2, "infra-times": 1 };
+  Object.entries(infraDefaults).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el) el.value = val;
+  });
+  updateInfraCalc();
   update();
 }
 
