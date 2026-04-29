@@ -345,18 +345,18 @@ const modules = [
     n: "Gestión Infraestructura", 
     h: 0,
     isFee: true, 
-    isFixed: true, 
-    desc: "Se enumeran los valores y servicios utilizados en la app que tienen un pago mensual por parte del cliente. Hosting: 75.000 ($18,77 USD), Dominio: 6.000 ($1,50 USD), servicio de speech to text para 5 usuarios: 685.000 ($171,43 USD, asumiendo que cada usuario se toma 24 horas de transcripción mensual)", 
+    isInfra: true, 
+    desc: "Se enumeran los valores y servicios utilizados en la app que tienen un pago mensual por parte del cliente. Hosting: 75.000 COP ($18,77 USD), Dominio: 6.000 COP ($1,50 USD), servicio de speech to text para 5 usuarios: 685.000 ($171,43 USD, asumiendo que cada usuario se toma 24 horas de transcripción mensual)", 
     subs: [] 
   },
   { 
     n: "Mantenimiento de la solución", 
-    h: 1, 
+    h: 0, 
     o: false, 
     isFee: true,
+    noDefault: true,
     desc: "Garantiza la evolución de la bitácora digital, incluyendo actualizaciones de seguridad y ajustes menores en los formularios de campo.", 
     subs: [
-      { label: "Mantenimiento Correctivo (Solo errores)", extraH: 0 },
       { label: "Mantenimiento Preventivo (Actualizaciones periódicas)", extraH: 3 },
       { label: "Mantenimiento Evolutivo (Mejoras continuas en UX/UI)", extraH: 5 }
     ] 
@@ -410,6 +410,17 @@ function updateInfraCalc() {
   if (d) d.textContent = minDay;
   if (m) m.textContent = minMonth;
   if (h) h.textContent = hrsMonth;
+  const users     = parseInt(document.getElementById("infra-users")?.value) || 5;
+  const speechCOP = Math.round(users * parseFloat(hrsMonth) * SPEECH_RATE_PER_HOUR);
+  const speechUSD = Math.round(speechCOP / USD_RATE);
+  const u = document.getElementById("id-users");
+  const sc = document.getElementById("id-speech-cop");
+  const su = document.getElementById("id-speech-usd");
+  const sh = document.getElementById("id-hrs-user");
+  if (u)  u.textContent  = users;
+  if (sc) sc.textContent = fmtCOP(speechCOP);
+  if (su) su.textContent = fmtUSD(speechUSD);
+  if (sh) sh.textContent = hrsMonth;
 }
 
 function getInfraPrice() {
@@ -518,7 +529,7 @@ modules.forEach((m, i) => {
 
     if (m.isInfra) {
       detailTr.innerHTML = `<td colspan="5"><div class="detail" id="detail-${i}">
-        <p>${m.desc}</p>
+        <p id="infra-desc">Se enumeran los valores y servicios utilizados en la app que tienen un pago mensual por parte del cliente. Hosting: 75.000 COP ($18,77 USD), Dominio: 6.000 COP ($1,50 USD), servicio de speech to text para <b id="id-users">5</b> usuarios: <b id="id-speech-cop">$&nbsp;685.000</b> (<b id="id-speech-usd">$171 USD</b>, asumiendo que cada usuario se toma <b id="id-hrs-user">12,0</b> horas de transcripción mensual).</p>
         <div class="infra-calc">
           <div class="infra-row">
             <label>Cantidad de usuarios</label>
@@ -560,7 +571,7 @@ modules.forEach((m, i) => {
           `<div class="sub-option">
             <input type="radio" name="sub_${i}" id="sub_${i}_${si}"
                   value="${s.label}" data-extra="${s.extraH}"
-                  ${si === 0 ? "checked" : ""}/>
+                  ${si === 0 && !m.noDefault ? "checked" : ""}/>
             <label for="sub_${i}_${si}">
               ${s.label}
               ${s.extraH > 0 ? `<span style="color:#1a6fbf;font-size:12px;font-weight:600">(+${s.extraH}h)</span>` : ''}
@@ -612,7 +623,13 @@ function resetAll() {
   // Restaura todos los radio buttons al primer submódulo
   modules.forEach((m, i) => {
     if (m.subs.length) {
-      document.getElementById("sub_" + i + "_0").checked = true;
+      if (m.noDefault) {
+        m.subs.forEach((_, si) => {
+          document.getElementById(`sub_${i}_${si}`).checked = false;
+        });
+      } else {
+        document.getElementById("sub_" + i + "_0").checked = true;
+      }
     }
   });
   // Restaura inputs de infraestructura
