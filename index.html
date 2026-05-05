@@ -330,16 +330,20 @@ const modules = [
   },
 
   // --- SECCIÓN: FEE MENSUAL ---
+  
   { 
     n: "Soporte técnico", 
-    h: 2, // Horas base mensuales
+    h: 2,
     o: false,
-    isFee: true, 
-    desc: "Asegura la disponibilidad de la solución mediante la resolución de dudas y gestión de incidentes reportados por los usuarios de Fenix Group.", 
+    isFee: true,
+    hidden: true, 
+    desc: "Asegura la disponibilidad...", 
+    subs: [] 
+    /* subs deshabilitados temporalmente — no afectan cotización
     subs: [
       { label: "Soporte Estándar (Respuesta prioritaria), incluye 4 horas mensuales", extraH: 0 },
       { label: "Soporte +4 horas", extraH: 4 }
-    ] 
+    ] */
   },
   { 
     n: "Gestión Infraestructura", 
@@ -351,15 +355,19 @@ const modules = [
   },
   { 
     n: "Mantenimiento de la solución", 
-    h: 0, 
+    h: 1,          // ← Fija las horas base (usa 3 = Preventivo, o 5 = Evolutivo, tú decides)
     o: false, 
     isFee: true,
+    hidden: true,
+    // noDefault: true  ← deshabilitado, ya no aplica sin subs
+    desc: "Garantiza la evolución...", 
+    subs: []
+    /* subs deshabilitados temporalmente — no afectan cotización
     noDefault: true,
-    desc: "Garantiza la evolución de la bitácora digital, incluyendo actualizaciones de seguridad y ajustes menores en los formularios de campo.", 
     subs: [
       { label: "Mantenimiento Preventivo (Actualizaciones periódicas)", extraH: 3 },
       { label: "Mantenimiento Evolutivo (Mejoras continuas en UX/UI)", extraH: 5 }
-    ] 
+    ] */
   }
 
 
@@ -505,6 +513,7 @@ modules.forEach((m, i) => {
 
   const tr = document.createElement("tr");
   if (m.o) tr.className = "mandatory";
+  if (m.hidden) tr.style.display = "none";
 
   // CAMBIO AQUÍ: Definir qué tarifa mostrar al cargar la página
   const tarifaInicial = m.isFee ? 100000 : DEFAULT_RATE;
@@ -526,10 +535,11 @@ modules.forEach((m, i) => {
   // Si el módulo tiene descripción o submódulos, genera la fila desplegable
   if (hasDetail) {
     const detailTr = document.createElement("tr");
+    if (m.hidden) detailTr.style.display = "none";
 
     if (m.isInfra) {
       detailTr.innerHTML = `<td colspan="5"><div class="detail" id="detail-${i}">
-        <p id="infra-desc">Se enumeran los valores y servicios utilizados en la app que tienen un pago mensual por parte del cliente. Hosting: 75.000 COP ($18,77 USD), Dominio: 6.000 COP ($1,50 USD), servicio de speech to text para <b id="id-users">5</b> usuarios: <b id="id-speech-cop">$&nbsp;685.000</b> (<b id="id-speech-usd">$171 USD</b>, asumiendo que cada usuario se toma <b id="id-hrs-user">12,0</b> horas de transcripción mensual).</p>
+        <p id="infra-desc">Se enumeran los valores y servicios utilizados en la app que tienen un pago mensual por parte del cliente. Hosting: 75.000 COP ($18,77 USD), Dominio: 6.000 COP ($1,50 USD), servicio de speech to text para <b id="id-users">5</b> usuarios: <b id="id-speech-cop">$&nbsp;685.000</b> (<b id="id-speech-usd">$171 USD</b>, asumiendo que cada usuario se toma <b id="id-hrs-user">12,0</b> horas de transcripción mensual por usuario).</p>
         <div class="infra-calc">
           <div class="infra-row">
             <label>Cantidad de usuarios</label>
@@ -548,7 +558,7 @@ modules.forEach((m, i) => {
             <input type="number" id="infra-projects" value="2" min="1"/>
           </div>
           <div class="infra-row">
-            <label>Veces de llenado por día</label>
+            <label>Cantidad de veces de llenado por día por usuario</label>
             <input type="number" id="infra-times" value="1" min="1"/>
           </div>
           <div class="infra-results">
